@@ -7,6 +7,10 @@
 
 **MCP Memory** is a **MCP Server** that gives **MCP Clients (Cursor, Claude, Windsurf and more)** the **ability to remember** information about users (preferences, behaviors) **across conversations**. It uses vector search technology to find relevant memories based on meaning, not just keywords. It's built with Cloudflare Workers, D1, Vectorize, Durable Objects, Workers AI and Agents.
 
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=qfFvYERw2TQ" target="_blank">
+ <img src="https://github.com/Puliczek/mcp-memory/video.png" alt="Watch the video" width="800" height="450" border="10" />
+</a>
+
 ## Try It Out
 
 
