@@ -1,117 +1,122 @@
-# Remote MCP Server on Cloudflare
+<div align="center" >🤝 Show your support - give a ⭐️ if you liked the content
+</div>
 
-Let's get a remote MCP server up-and-running on Cloudflare Workers complete with OAuth login!
+---
 
-## Develop locally
+# MCP Memory
+
+**MCP Memory** is a **MCP Server** that gives **MCP Clients (Cursor, Claude, Windsurf and more)** the **ability to remember** information about users (preferences, behaviors) **across conversations**. It uses vector search technology to find relevant memories based on meaning, not just keywords. It's built with Cloudflare Workers, D1, Vectorize, Durable Objects, Workers AI and Agents.
+
+## Try It Out
+
+
+### [https://memory.mcpgenerator.com/](https://memory.mcpgenerator.com/)
+
+
+
+## How to Deploy Your Own MCP Memory
+
+### Option 1: Deploy your own MCP Memory to Cloudflare
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/puliczek/mcp-memory)
+
+### Option 2: Use this template
+1. Click the "Use this template" button at the top of this repository
+2. Clone your new repository
+3. Follow the setup instructions below
+
+### Option 3: Create with CloudFlare CLI
 
 ```bash
-# clone the repository
-git clone git@github.com:cloudflare/ai.git
+npm create cloudflare@latest --git https://github.com/puliczek/mcp-memory
+```
 
-# install dependencies
-cd ai
+## Setup
+
+1. Install dependencies:
+```bash
 npm install
-
-# run locally
-npx nx dev remote-mcp-server
 ```
 
-You should be able to open [`http://localhost:8787/`](http://localhost:8787/) in your browser
-
-## Connect the MCP inspector to your server
-
-To explore your new MCP api, you can use the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector).
-
-- Start it with `npx @modelcontextprotocol/inspector`
-- [Within the inspector](http://localhost:5173), switch the Transport Type to `SSE` and enter `http://localhost:8787/sse` as the URL of the MCP server to connect to, and click "Connect"
-- You will navigate to a (mock) user/password login screen. Input any email and pass to login.
-- You should be redirected back to the MCP Inspector and you can now list and call any defined tools!
-
-<div align="center">
-  <img src="img/mcp-inspector-sse-config.png" alt="MCP Inspector with the above config" width="600"/>
-</div>
-
-<div align="center">
-  <img src="img/mcp-inspector-successful-tool-call.png" alt="MCP Inspector with after a tool call" width="600"/>
-</div>
-
-## Connect Claude Desktop to your local MCP server
-
-The MCP inspector is great, but we really want to connect this to Claude! Follow [Anthropic's Quickstart](https://modelcontextprotocol.io/quickstart/user) and within Claude Desktop go to Settings > Developer > Edit Config to find your configuration file.
-
-Open the file in your text editor and replace it with this configuration:
-
-```json
-{
-  "mcpServers": {
-    "math": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "http://localhost:8787/sse"
-      ]
-    }
-  }
-}
-```
-
-This will run a local proxy and let Claude talk to your MCP server over HTTP
-
-When you open Claude a browser window should open and allow you to login. You should see the tools available in the bottom right. Given the right prompt Claude should ask to call the tool.
-
-<div align="center">
-  <img src="img/available-tools.png" alt="Clicking on the hammer icon shows a list of available tools" width="600"/>
-</div>
-
-<div align="center">
-  <img src="img/claude-does-math-the-fancy-way.png" alt="Claude answers the prompt 'I seem to have lost my calculator and have run out of fingers. Could you use the math tool to add 23 and 19?' by invoking the MCP add tool" width="600"/>
-</div>
-
-## Deploy to Cloudflare
-
-1. `npx wrangler kv namespace create OAUTH_KV`
-2. Follow the guidance to add the kv namespace ID to `wrangler.jsonc`
-3. `npm run deploy`
-
-## Call your newly deployed remote MCP server from a remote MCP client
-
-Just like you did above in "Develop locally", run the MCP inspector:
-
-`npx @modelcontextprotocol/inspector@latest`
-
-Then enter the `workers.dev` URL (ex: `worker-name.account-name.workers.dev/sse`) of your Worker in the inspector as the URL of the MCP server to connect to, and click "Connect".
-
-You've now connected to your MCP server from a remote MCP client.
-
-## Connect Claude Desktop to your remote MCP server
-
-Update the Claude configuration file to point to your `workers.dev` URL (ex: `worker-name.account-name.workers.dev/sse`) and restart Claude 
-
-```json
-{
-  "mcpServers": {
-    "math": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://worker-name.account-name.workers.dev/sse"
-      ]
-    }
-  }
-}
-```
-
-## Debugging
-
-Should anything go wrong it can be helpful to restart Claude, or to try connecting directly to your
-MCP server on the command line with the following command.
-
+2. Create a Vectorize index:
 ```bash
-npx mcp-remote http://localhost:8787/sse
+npx wrangler vectorize create mcp-memory-vectorize
 ```
 
-In some rare cases it may help to clear the files added to `~/.mcp-auth`
-
+3. Install Wrangler:
 ```bash
-rm -rf ~/.mcp-auth
+npm run dev
 ```
+
+4. Deploy the worker:
+```bash
+npx wrangler deploy
+```
+
+## How It Works
+
+1. **Storing Memories**:
+   - Your text is processed by **Cloudflare Workers AI** using the open-source `@cf/baai/bge-m3` model to generate embeddings
+   - The text and its vector embedding are stored in two places:
+     - **Cloudflare Vectorize**: Stores the vector embeddings for similarity search
+     - **Cloudflare D1**: Stores the original text and metadata for persistence
+   - A **Durable Object** (MyMCP) manages the state and ensures consistency
+   - The **Agents** framework handles the **MCP protocol** communication
+
+2. **Retrieving Memories**:
+   - Your query is converted to a vector using **Workers AI** with the same `@cf/baai/bge-m3` model
+   - Vectorize performs similarity search to find relevant memories
+   - Results are ranked by similarity score
+   - The **D1 database** provides the original text for matched vectors
+   - The **Durable Object** coordinates the retrieval process
+
+This architecture enables:
+- Fast vector similarity search through Vectorize
+- Persistent storage with D1
+- Stateful operations via Durable Objects
+- Standardized AI interactions through Workers AI
+- Protocol compliance via the Agents framework
+
+The system finds conceptually related information even when the exact words don't match.
+
+## Cost Information - FREE for Most Users
+
+MCP Memory is free to use for normal usage levels:
+- Free tier allows 1,000 memories with ~28,000 queries per month
+- Uses Cloudflare's free quota for Workers, Vectorize, Worker AI and D1 database
+
+For more details on Cloudflare pricing, see:
+- [Vectorize Pricing](https://developers.cloudflare.com/vectorize/platform/pricing/)
+- [Workers AI Pricing](https://developers.cloudflare.com/workers-ai/pricing-and-rate-limits/)
+- [Workers Pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+- [Durable Objects Pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/)
+- [Database D1 Pricing](https://developers.cloudflare.com/d1/platform/pricing/)
+
+## FAQ
+
+1. **Can I use memory.mcpgenerator.com to store my memories?**
+   - Yes, you can use memory.mcpgenerator.com to store and retrieve your memories
+   - The service is free
+   - Your memories are securely stored and accessible only to you
+   - I cannot guarantee that the service will always be available
+
+2. **Can I host it?**
+   - Yes, you can host your own instance of MCP Memory **for free on Cloudflare**
+   - You'll need a Cloudflare account and the following services:
+     - Workers
+     - Vectorize
+     - D1 Database
+     - Workers AI
+
+3. **Can I run it locally?**
+   - Yes, you can run MCP Memory locally for development
+   - Use `wrangler dev` to run the worker locally
+   - You'll need to set up local development credentials for Cloudflare services
+   - Note that some features like vector search or workers AI requires a connection to Cloudflare's services
+
+4. **Can I use different hosting?**
+   - No, MCP Memory is specifically designed for Cloudflare's infrastructure
+
+5. **Why did you build it?**
+   - I wanted an open-source solution
+   - Control over my own data was important to me
