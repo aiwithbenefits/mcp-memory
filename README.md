@@ -24,6 +24,10 @@
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/puliczek/mcp-memory)
 
+In **Create Vectorize** section choose:
+- **Dimensions:** 1024
+- **Metric:** cosine
+
 ### Option 2: Use this template
 1. Click the "Use this template" button at the top of this repository
 2. Clone your new repository
@@ -44,7 +48,7 @@ npm install
 
 2. Create a Vectorize index:
 ```bash
-npx wrangler vectorize create mcp-memory-vectorize
+npx wrangler vectorize create mcp-memory-vectorize --dimensions 1024 --metric cosine
 ```
 
 3. Install Wrangler:
