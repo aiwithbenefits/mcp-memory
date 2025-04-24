@@ -22,13 +22,20 @@
 
 ## 🛠️ How to Deploy Your Own MCP Memory
 
-### Option 1: Deploy your own MCP Memory to Cloudflare
+### Option 1: One-Click Deploy Your Own MCP Memory to Cloudflare
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/puliczek/mcp-memory)
 
 In **Create Vectorize** section choose:
 - **Dimensions:** 1024
 - **Metric:** cosine
+
+Click button **"Create and Deploy"**
+
+In Cloudflare dashboard, go to "Workers & Pages" and click on Visit
+
+![Visit MCP Memory](/visit.png)
+
 
 ### Option 2: Use this template
 1. Click the "Use this template" button at the top of this repository
@@ -41,7 +48,7 @@ In **Create Vectorize** section choose:
 npm create cloudflare@latest --git https://github.com/puliczek/mcp-memory
 ```
 
-## 🔧 Setup
+## 🔧 Setup (Only Option 2 & 3)
 
 1. Install dependencies:
 ```bash
@@ -92,6 +99,20 @@ This architecture enables:
 
 The system finds conceptually related information even when the exact words don't match.
 
+## 🔒 Security
+
+MCP Memory implements several security measures to protect user data:
+
+- Each user's memories are stored in **isolated namespaces** within Vectorize for data separation
+- Built-in **rate limiting** prevents abuse (**100 req/min** - you can change it in wrangler.jsonc)
+- **Authentication is based on userId only**
+  - While this is sufficient for basic protection due to rate limiting
+  - Additional authentication layers (like API keys or OAuth) can be easily added if needed
+- All data is stored in Cloudflare's secure infrastructure
+- All communications are secured with industry-standard TLS encryption (automatically provided by Cloudflare's SSL/TLS certification)
+
+
+
 ## 💰 Cost Information - FREE for Most Users
 
 MCP Memory is free to use for normal usage levels:
@@ -136,9 +157,8 @@ For more details on Cloudflare pricing, see:
 
 
 6. **Can I use it for more than one person?**
-   - Yes, MCP Memory supports multiple users
+   - Yes, MCP Memory can be integrated into your app to serve all your users
    - Each user gets their own isolated memory space
-   - There's no practical limit on the number of users (within free tier quotas)
 
 7. **Can I use it to store things other than memories?**
    - Yes, MCP Memory can store any type of text-based information
@@ -147,3 +167,9 @@ For more details on Cloudflare pricing, see:
      - User Behaviors: Track how users interact with features and common usage patterns
      - Project Notes: decisions and project updates
    - The vector search will help find related items regardless of content type
+
+
+
+# 🤝 Show your support
+
+<div>🤝 Show your support - give a ⭐️ if you liked the content</div>
