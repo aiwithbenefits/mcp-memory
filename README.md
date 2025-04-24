@@ -133,3 +133,17 @@ For more details on Cloudflare pricing, see:
 5. **Why did you build it?**
    - I wanted an open-source solution
    - Control over my own data was important to me
+
+
+6. **Can I use it for more than one person?**
+   - Yes, MCP Memory supports multiple users
+   - Each user gets their own isolated memory space
+   - There's no practical limit on the number of users (within free tier quotas)
+
+7. **Can I use it to store things other than memories?**
+   - Yes, MCP Memory can store any type of text-based information
+   - Some practical examples:
+     - Knowledge Base: Store technical documentation, procedures, and troubleshooting guides
+     - User Behaviors: Track how users interact with features and common usage patterns
+     - Project Notes: decisions and project updates
+   - The vector search will help find related items regardless of content type
