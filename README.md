@@ -67,7 +67,7 @@ npm run dev
 
 4. Deploy the worker:
 ```bash
-npx wrangler deploy
+npm run deploy
 ```
 
 ## 🧠 How It Works
