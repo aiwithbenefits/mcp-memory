@@ -7,18 +7,20 @@
 
 **MCP Memory** is a **MCP Server** that gives **MCP Clients (Cursor, Claude, Windsurf and more)** the **ability to remember** information about users (preferences, behaviors) **across conversations**. It uses vector search technology to find relevant memories based on meaning, not just keywords. It's built with Cloudflare Workers, D1, Vectorize, Durable Objects, Workers AI and Agents.
 
+## 📺 Video
+
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=qfFvYERw2TQ" target="_blank">
  <img src="https://github.com/Puliczek/mcp-memory/blob/main/video.png?raw=true" alt="Watch the video" width="800" height="450" border="10" />
 </a>
 
-## Try It Out
+## 🚀 Try It Out
 
 
 ### [https://memory.mcpgenerator.com/](https://memory.mcpgenerator.com/)
 
 
 
-## How to Deploy Your Own MCP Memory
+## 🛠️ How to Deploy Your Own MCP Memory
 
 ### Option 1: Deploy your own MCP Memory to Cloudflare
 
@@ -39,7 +41,7 @@ In **Create Vectorize** section choose:
 npm create cloudflare@latest --git https://github.com/puliczek/mcp-memory
 ```
 
-## Setup
+## 🔧 Setup
 
 1. Install dependencies:
 ```bash
@@ -61,7 +63,10 @@ npm run dev
 npx wrangler deploy
 ```
 
-## How It Works
+## 🧠 How It Works
+
+![MCP Memory Architecture](/arch.png)
+
 
 1. **Storing Memories**:
    - Your text is processed by **Cloudflare Workers AI** using the open-source `@cf/baai/bge-m3` model to generate embeddings
@@ -87,7 +92,7 @@ This architecture enables:
 
 The system finds conceptually related information even when the exact words don't match.
 
-## Cost Information - FREE for Most Users
+## 💰 Cost Information - FREE for Most Users
 
 MCP Memory is free to use for normal usage levels:
 - Free tier allows 1,000 memories with ~28,000 queries per month
@@ -100,7 +105,7 @@ For more details on Cloudflare pricing, see:
 - [Durable Objects Pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/)
 - [Database D1 Pricing](https://developers.cloudflare.com/d1/platform/pricing/)
 
-## FAQ
+## ❓ FAQ
 
 1. **Can I use memory.mcpgenerator.com to store my memories?**
    - Yes, you can use memory.mcpgenerator.com to store and retrieve your memories
