@@ -5,10 +5,37 @@ import { v4 as uuidv4 } from 'uuid';
  */
 export async function initializeDatabase(env: Env): Promise<void> {
   try {
-    await env.DB.exec("CREATE TABLE IF NOT EXISTS memories (id TEXT PRIMARY KEY, userId TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
-    console.log("Checked/Created memories table in D1.");
+    await env.DB.exec(
+      "CREATE TABLE IF NOT EXISTS memories (id TEXT PRIMARY KEY, userId TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+    );
+    await env.DB.exec(
+      "CREATE TABLE IF NOT EXISTS emails (id TEXT PRIMARY KEY, userId TEXT NOT NULL, memoryId TEXT NOT NULL, sender TEXT, recipients TEXT, subject TEXT, date TEXT, company TEXT, messageId TEXT, inReplyTo TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+    );
+
+    // migrate optional columns if upgrading from older schema
+    const info = await env.DB.prepare('PRAGMA table_info(emails)').all();
+    const columns = (info.results as Array<{ name: string }>).map((c) => c.name);
+    if (!columns.includes('messageId')) {
+      await env.DB.exec('ALTER TABLE emails ADD COLUMN messageId TEXT');
+    }
+    if (!columns.includes('inReplyTo')) {
+      await env.DB.exec('ALTER TABLE emails ADD COLUMN inReplyTo TEXT');
+    }
+    await env.DB.exec(
+      "CREATE INDEX IF NOT EXISTS emails_userId_idx ON emails(userId)"
+    );
+    await env.DB.exec(
+      "CREATE INDEX IF NOT EXISTS emails_memory_idx ON emails(memoryId, userId)"
+    );
+    await env.DB.exec(
+      "CREATE INDEX IF NOT EXISTS emails_sender_idx ON emails(userId, sender)"
+    );
+    await env.DB.exec(
+      "CREATE INDEX IF NOT EXISTS emails_company_idx ON emails(userId, company)"
+    );
+    console.log("Checked/Created memories and emails tables in D1.");
   } catch (e) {
-    console.error("Failed to create memories table in D1:", e);
+    console.error("Failed to create tables in D1:", e);
     throw e;
   }
 }

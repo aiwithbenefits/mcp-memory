@@ -2,6 +2,14 @@ import { Hono } from "hono";
 import { MyMCP } from "./mcp";
 import { getAllMemoriesFromD1, initializeDatabase, deleteMemoryFromD1, updateMemoryInD1 } from "./utils/db";
 import { deleteVectorById, updateMemoryVector } from "./utils/vectorize";
+import {
+  storeEmailMemory,
+  listEmails,
+  deleteEmail,
+  searchEmailMemories,
+  getEmailWithContent,
+  EmailData,
+} from "./utils/email";
 
 const app = new Hono<{
   Bindings: Env;
@@ -105,6 +113,87 @@ app.put("/:userId/memories/:memoryId", async (c) => {
       return c.json({ success: false, error: errorMessage }, 404);
     }
     return c.json({ success: false, error: errorMessage }, 500);
+  }
+});
+
+// Store an email for a user
+app.post("/:userId/emails", async (c) => {
+  const userId = c.req.param("userId");
+  let email: EmailData;
+
+  try {
+    email = await c.req.json<EmailData>();
+    if (!email.subject || !email.body || !email.sender) {
+      return c.json({ success: false, error: "Missing required email fields" }, 400);
+    }
+  } catch (e) {
+    return c.json({ success: false, error: "Invalid JSON body" }, 400);
+  }
+
+  try {
+    const id = await storeEmailMemory(email, userId, c.env);
+    return c.json({ success: true, id });
+  } catch (err) {
+    console.error("Error storing email", err);
+    return c.json({ success: false, error: "Failed to store email" }, 500);
+  }
+});
+
+// List emails for a user
+app.get("/:userId/emails", async (c) => {
+  const userId = c.req.param("userId");
+  try {
+    const emails = await listEmails(userId, c.env);
+    return c.json({ success: true, emails });
+  } catch (e) {
+    console.error("Error retrieving emails", e);
+    return c.json({ success: false, error: "Failed to retrieve emails" }, 500);
+  }
+});
+
+// Get a single email with content
+app.get("/:userId/emails/:memoryId", async (c) => {
+  const userId = c.req.param("userId");
+  const memoryId = c.req.param("memoryId");
+  try {
+    const email = await getEmailWithContent(memoryId, userId, c.env);
+    if (!email) return c.json({ success: false, error: "Not Found" }, 404);
+    return c.json({ success: true, email });
+  } catch (e) {
+    console.error("Error retrieving email", e);
+    return c.json({ success: false, error: "Failed to retrieve email" }, 500);
+  }
+});
+
+// Delete email
+app.delete("/:userId/emails/:memoryId", async (c) => {
+  const userId = c.req.param("userId");
+  const memoryId = c.req.param("memoryId");
+  try {
+    await deleteEmail(memoryId, userId, c.env);
+    await deleteMemoryFromD1(memoryId, userId, c.env);
+    await deleteVectorById(memoryId, userId, c.env);
+    return c.json({ success: true });
+  } catch (e) {
+    console.error("Error deleting email", e);
+    return c.json({ success: false, error: "Failed to delete email" }, 500);
+  }
+});
+
+// Search email memories
+app.get("/:userId/emails/search", async (c) => {
+  const userId = c.req.param("userId");
+  const query = c.req.query("q");
+  const company = c.req.query("company");
+  if (!query) {
+    return c.json({ success: false, error: "Missing query" }, 400);
+  }
+  try {
+    const results = await searchEmailMemories(query, userId, c.env, company);
+    return c.json({ success: true, results });
+  } catch (err) {
+    console.error("Error searching emails", err);
+    return c.json({ success: false, error: "Failed to search emails" }, 500);
   }
 });
 
