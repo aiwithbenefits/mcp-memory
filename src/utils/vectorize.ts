@@ -28,8 +28,13 @@ async function generateEmbeddings(text: string, env: Env): Promise<number[]> {
  * @param env - Environment containing Vectorize and AI services
  * @returns Promise resolving to the unique memory ID
  */
-export async function storeMemory(text: string, userId: string, env: Env): Promise<string> {
-  const memoryId = uuidv4();
+export async function storeMemory(
+  text: string,
+  userId: string,
+  env: Env,
+  metadata: Record<string, string> = {},
+  memoryId: string = uuidv4()
+): Promise<string> {
 
   // Generate embedding
   const values = await generateEmbeddings(text, env);
@@ -40,7 +45,7 @@ export async function storeMemory(text: string, userId: string, env: Env): Promi
       id: memoryId,
       values,
       namespace: userId,
-      metadata: { content: text },
+      metadata: { content: text, ...metadata },
     },
   ]);
 
@@ -58,7 +63,7 @@ export async function searchMemories(
   query: string,
   userId: string,
   env: Env
-): Promise<Array<{ content: string; score: number; id: string }>> {
+): Promise<Array<{ content: string; score: number; id: string; metadata?: Record<string, string> }>> {
   // Generate embedding for query
   const queryVector = await generateEmbeddings(query, env);
 
@@ -90,6 +95,7 @@ export async function searchMemories(
         content,
         score: match.score || 0,
         id: match.id,
+        metadata: match.metadata as Record<string, string> | undefined,
       };
     });
 
@@ -110,7 +116,8 @@ export async function updateMemoryVector(
   memoryId: string,
   newContent: string,
   userId: string,
-  env: Env
+  env: Env,
+  metadata: Record<string, string> = {}
 ): Promise<void> {
   // Generate new embedding
   const newValues = await generateEmbeddings(newContent, env);
@@ -121,7 +128,7 @@ export async function updateMemoryVector(
       id: memoryId,
       values: newValues,
       namespace: userId,
-      metadata: { content: newContent }, // Update metadata as well
+      metadata: { content: newContent, ...metadata }, // Update metadata as well
     },
   ]);
 
@@ -134,17 +141,24 @@ export async function updateMemoryVector(
  * @param userId - User ID to associate with the memory (used as namespace)
  * @param env - Environment containing Vectorize service
  */
-export async function deleteVectorById(memoryId: string, userId: string, env: Env): Promise<void> {
+export async function deleteVectorById(
+  memoryId: string,
+  userId: string,
+  env: Env,
+): Promise<void> {
   try {
-    // todo WARNING: This might delete the ID globally if namespaces are not implicitly handled.
-    // Further investigation needed on how Vectorize handles namespaces during deletion.
-    const result = await env.VECTORIZE.deleteByIds([memoryId]);
+    const result = await (env.VECTORIZE as any).deleteByIds([memoryId], {
+      namespace: userId,
+    });
     console.log(
-      `Attempted global deletion for vector ID ${memoryId}. Deletion was requested for user (namespace): ${userId} Result:`,
-      result
+      `Deleted vector ID ${memoryId} from Vectorize namespace ${userId}. Result:`,
+      result,
     );
   } catch (error) {
-    console.error(`Error deleting vector ID ${memoryId} from Vectorize namespace ${userId}:`, error);
+    console.error(
+      `Error deleting vector ID ${memoryId} from Vectorize namespace ${userId}:`,
+      error,
+    );
     throw error;
   }
 }

@@ -126,6 +126,24 @@ For more details on Cloudflare pricing, see:
 - [Durable Objects Pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/)
 - [Database D1 Pricing](https://developers.cloudflare.com/d1/platform/pricing/)
 
+## 📧 Email API
+
+In addition to storing arbitrary text, MCP Memory can capture emails and related
+metadata for improved context retrieval. The following endpoints are available:
+
+`POST /:userId/emails` – Store a new email. Body fields:
+`subject`, `body`, `sender`, optional `recipients` array, `date`,
+`messageId`, `inReplyTo`, and `company`.
+
+`GET /:userId/emails` – List stored emails for the user.
+
+`GET /:userId/emails/search?q=your+query[&company=acme]` –
+Search stored emails semantically. The optional `company`
+parameter filters results by sender domain.
+
+`DELETE /:userId/emails/:memoryId` – Remove an email from storage.
+
+
 ## ❓ FAQ
 
 1. **Can I use memory.mcpgenerator.com to store my memories?**
